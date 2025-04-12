@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notea-fi</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    body.dark {
+      background-color: #121212;
+      color: #fff;
+    }
+
+    body.light {
+      background-color: #f1f1f1;
+      color: #000;
+    }
+
+    .player {
+      background-color: #181818;
+      border-radius: 20px;
+      padding: 2rem;
+      width: 350px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      text-align: center;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    body.light .player {
+      background-color: #ffffff;
+      color: #000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .noteafi-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #1db954;
+      margin-bottom: 1rem;
+    }
+
+    .album-art {
+      width: 100%;
+      height: 300px;
+      background-color: #333;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .track-info h2 {
+      font-size: 1.3rem;
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    .track-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      appearance: none;
+      background: #404040;
+      height: 4px;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    body.light input[type="range"] {
+      background: #ddd;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 10px;
+      height: 10px;
+      background: #1db954;
+      border-radius: 50%;
+    }
+
+    .time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+      color: #bbb;
+    }
+
+    body.light .time {
+      color: #666;
+    }
+
+    .controls {
+      margin-top: 1rem;
+    }
+
+    .controls button {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.5rem;
+      margin: 0 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .controls button:hover {
+      transform: scale(1.2);
+      color: #1db954;
+    }
+
+    .controls button.active {
+      color: #1db954;
+    }
+
+    .volume-control {
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume-control span {
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle {
+      margin-top: 1rem;
+      padding: 5px 15px;
+      background-color: #333;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      border-radius: 20px;
+      transition: background-color 0.3s;
+    }
+
+    body.light .theme-toggle {
+      background-color: #e0e0e0;
+      color: #000;
+    }
+
+    .theme-toggle:hover {
+      background-color: #1db954;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="dark">
+  <div class="player">
+    <div class="noteafi-title">Notea-fi</div>
+    <div class="album-art" id="albumArt"></div>
+    <div class="track-info">
+      <h2 id="trackTitle">Track Title</h2>
+      <p id="trackArtist">Artist Name</p>
+    </div>
+    <input type="range" id="progress" value="0">
+    <div class="time">
+      <span id="currentTime">0:00</span>
+      <span id="duration">0:00</span>
+    </div>
+    <div class="controls">
+      <button onclick="prevTrack()"⏮️</button>
+      <button onclick="togglePlayPause()" id="playPause">▶️</button>
+      <button onclick="nextTrack()">⏭️</button>
+      <button onclick="toggleRepeat()" id="repeatBtn">🔁</button>
+      <button onclick="toggleTheme()">🌓</button>
+      <button onclick="downloadTrack()">⬇️</button>
+    </div>
+    <div class="volume-control">
+      <span>🔊</span>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+    </div>
+  </div>
+
+  <script>
+    const tracks = [
+      { title: "WARNING", artist: "Gman1214", src: "WARNING.mp3", cover: "200x200.jpg" },
+      { title: "DON'T STOP", artist: "IDK", src: "DON'T STOP.mp3", cover: "1214.jpg" },
+      { title: "All I Want Is You", artist: "Rebzyyx", src: "AIWIY.mp3", cover: "AIWIY.jpg" },
+      { title: "The Days", artist: "Chrystal", src: "TD.mp3", cover: "TD.jpg" },
+      { title: "Sunny Day", artist: "Sunshine Band", src: "sunny-day.mp3", cover: "cover5.jpg" },
+      { title: "Chill Waves", artist: "Relaxing Tunes", src: "chill-waves.mp3", cover: "cover6.jpg" },
+      { title: "Night Drive", artist: "Night Owls", src: "night-drive.mp3", cover: "cover7.jpg" },
+      { title: "Electric Pulse", artist: "DJ Electro", src: "electric-pulse.mp3", cover: "cover8.jpg" },
+      { title: "Lullaby Sky", artist: "The Sleepy Tunes", src: "lullaby-sky.mp3", cover: "cover9.jpg" },
+      { title: "Ocean Breeze", artist: "Tropical Sounds", src: "ocean-breeze.mp3", cover: "cover10.jpg" },
+      { title: "Midnight Beats", artist: "DJ Midnight", src: "midnight-beats.mp3", cover: "cover11.jpg" },
+      { title: "Rhythm of Life", artist: "Soul Band", src: "rhythm-of-life.mp3", cover: "cover12.jpg" },
+      { title: "Feel Good", artist: "Good Vibes", src: "feel-good.mp3", cover: "cover13.jpg" },
+      { title: "Dawn of New Day", artist: "Fresh Tunes", src: "dawn-of-new-day.mp3", cover: "cover14.jpg" },
+      { title: "Groove On", artist: "Dance Masters", src: "groove-on.mp3", cover: "cover15.jpg" }
+    ];
+
+    let currentTrack = 0;
+    let isPlaying = false;
+    let isRepeating = false;
+    const audio = new Audio();
+    const playPauseBtn = document.getElementById('playPause');
+    const repeatBtn = document.getElementById('repeatBtn');
+    const progress = document.getElementById('progress');
+    const volumeSlider = document.getElementById('volume');
+
+    function loadTrack(index) {
+      const track = tracks[index];
+      audio.src = track.src;
+      document.getElementById('trackTitle').textContent = track.title;
+      document.getElementById('trackArtist').textContent = track.artist;
+      document.getElementById('albumArt').style.backgroundImage = `url(${track.cover})`;
+      audio.load();
+    }
+
+    function togglePlayPause() {
+      if (isPlaying) {
+        audio.pause();
+        playPauseBtn.textContent = '▶️';
+      } else {
+        audio.play();
+        playPauseBtn.textContent = '⏸️';
+      }
+      isPlaying = !isPlaying;
+    }
+
+    function nextTrack() {
+      currentTrack = (currentTrack + 1) % tracks.length;
+      loadTrack(currentTrack);
+      if (isPlaying) audio.play();
+    }
+
+    function prevTrack() {
+      currentTrack = (currentTrack - 1 + tracks.length) % tracks.length;
+      loadTrack(currentTrack);
+      if (isPlaying) audio.play();
+    }
+
+    function toggleRepeat() {
+      isRepeating = !isRepeating;
+      repeatBtn.classList.toggle('active', isRepeating);
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+      document.body.classList.toggle('dark');
+    }
+
+    function downloadTrack() {
+      const link = document.createElement('a');
+      link.href = audio.src;
+      link.download = tracks[currentTrack].title + '.mp3';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    audio.addEventListener('ended', () => {
+      if (isRepeating) {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        nextTrack();
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      document.getElementById('duration').textContent = formatTime(audio.duration);
+      progress.max = Math.floor(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      document.getElementById('currentTime').textContent = formatTime(audio.currentTime);
+      progress.value = audio.currentTime;
+    });
+
+    progress.addEventListener('input', () => {
+      audio.currentTime = progress.value;
+    });
+
+    volumeSlider.addEventListener('input', () => {
+      audio.volume = volumeSlider.value;
+    });
+
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    loadTrack(currentTrack);
+  </script>
+</body>
+</html>
+
